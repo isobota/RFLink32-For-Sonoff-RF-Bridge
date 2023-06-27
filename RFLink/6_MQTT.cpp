@@ -1,9 +1,3 @@
-// ************************************* //
-// * Arduino Project RFLink32        * //
-// * https://github.com/couin3/RFLink  * //
-// * 2018..2020 Stormteam - Marc RIVES * //
-// * More details in RFLink.ino file   * //
-// ************************************* //
 
 #include <Arduino.h>
 #include "RFLink.h"
@@ -326,7 +320,53 @@ void publishMsg()
 
   if (!MQTTClient.connected())
     reconnect(1);
-  MQTTClient.publish(params::topic_out.c_str(), pbuffer, MQTT_RETAINED);
+  
+
+char *array[64];
+  String _topic;
+  String _protocol;
+  String _id;
+  String _sw;
+  String _cmd;
+  String _msg;
+  
+  int i = 0;
+  array[i] = strtok(pbuffer, ";=");
+
+  while(array[i] != NULL)
+    array[++i] = strtok(NULL, ";=");
+//// komunikat RF: 20;11;EV1527;ID=0a9d62;SWITCH=01;CMD=ON; 
+
+  _protocol = array[2];
+  _id = array[4];
+  _sw = array[6];
+  _cmd = array[8];
+ _msg = "{\"" + _protocol + "\":[{\"CMD\":"+_cmd.c_str() +"}]}" ;
+  // _topic = params::topic_out + "/" + _protocol + "/" + _id + "/" + _sw + "/cmd";
+  // sprintf(pbuffer,"%s",_cmd.c_str());
+  sprintf(pbuffer,"%s",_msg.c_str());
+  
+ // Serial.println(_topic.c_str());
+  Serial.print("_protocol = ");
+  Serial.println(_protocol);
+  Serial.print("_id = ");
+  Serial.println(_id);
+  Serial.print("_sw = ");
+  Serial.println(_sw);
+  Serial.print("_cmd = ");
+  Serial.println(_cmd);
+  Serial.print("pbuffer = ");  
+  Serial.println(pbuffer);
+  Serial.print("_msg = ");
+  Serial.println(_msg.c_str());
+  Serial.print("topic = ");
+  Serial.println(params::topic_out.c_str());
+  Serial.println("Wykonuje: publishMsg");
+// MQTTClient.publish("v1/devices/me/telemetry", "{\"EV1527\":[{\"CMD\":ON}]}");
+MQTTClient.publish(params::topic_out.c_str(), pbuffer, MQTT_RETAINED);
+
+  // Serial.println(params::topic_out.c_str());
+  // Serial.println(pbuffer);
 }
 
 void checkMQTTloop()
@@ -389,6 +429,4 @@ void getStatusJsonString(JsonObject &output) {
 }} // end of Mqtt namespace
 
 #endif // RFLINK_MQTT_DISABLED
-
-
 
